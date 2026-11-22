@@ -18,7 +18,8 @@ pipeline {
 
         stage('Run Docker Container') {
             steps {
-                sh 'sudo docker run -d -p 3000:3000 --name node-container mynode'
+                sh 'docker rm -f node-container || true'
+                sh 'docker run -d -p 3000:3000 --name node-container mynode'
             }
         }
     }
