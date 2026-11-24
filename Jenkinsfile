@@ -24,21 +24,37 @@ pipeline {
         }
     }
 
-    post {
+     post {
         success {
-             emailext(
-                to: 'sankarpraveen287@gmail.com, vijay.s@doodleblue.com',
-                subject: "SUCCESS: React-Job #${env.BUILD_NUMBER}",
-                body: "Node.js application built and executed successfully: ${env.BUILD_URL}"
-            )
+            withCredentials([
+                string(credentialsId: 'telegram-bot-token',
+                       variable: 'BOT_TOKEN'),
+                string(credentialsId: 'telegram-chat-id',
+                       variable: 'CHAT_ID')
+            ]) {
+                sh '''
+                    curl -sS -X POST \
+                    "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+                    --data-urlencode "chat_id=${CHAT_ID}" \
+                    --data-urlencode "text=SUCCESS: ${JOB_NAME} Build #${BUILD_NUMBER} completed successfully. ${BUILD_URL}"
+                '''
+            }
         }
 
         failure {
-            emailext(
-                to: 'sankarpraveen287@gmail.com, vijay.s@doodleblue.com',
-                subject: "FAILED: React-Job #${env.BUILD_NUMBER}",
-                body: "Node.js application built and executed successfully: ${env.BUILD_URL}"
-            )
+            withCredentials([
+                string(credentialsId: 'telegram-bot-token',
+                       variable: 'BOT_TOKEN'),
+                string(credentialsId: 'telegram-chat-id',
+                       variable: 'CHAT_ID')
+            ]) {
+                sh '''
+                    curl -sS -X POST \
+                    "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+                    --data-urlencode "chat_id=${CHAT_ID}" \
+                    --data-urlencode "text=FAILURE: ${JOB_NAME} Build #${BUILD_NUMBER} failed. Check Jenkins console output. ${BUILD_URL}"
+                '''
+            }
         }
-    }
+     }
 }
