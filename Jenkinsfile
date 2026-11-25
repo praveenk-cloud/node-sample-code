@@ -41,7 +41,7 @@ Build Status: ${currentBuild.currentResult}
 
                 withCredentials([
                     string(credentialsId: 'telegram-api-token1', variable: 'BOT_TOKEN'),
-                    string(credentialsId: 'telegram-id1', variable: 'CHAT_ID')
+                    string(credentialsId: 'telegram-id-1', variable: 'CHAT_ID')
                 ]) {
 
                     withEnv(["MESSAGE=${message}"]) {
