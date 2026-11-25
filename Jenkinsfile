@@ -1,3 +1,4 @@
+
 pipeline {
     agent any
 
@@ -24,37 +25,35 @@ pipeline {
         }
     }
 
-     post {
-        success {
-            withCredentials([
-                string(credentialsId: 'telegram-bot-token',
-                       variable: 'BOT_TOKEN'),
-                string(credentialsId: 'telegram-chat-id',
-                       variable: 'CHAT_ID')
-            ]) {
-                sh '''
-                    curl -sS -X POST \
-                    "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
-                    --data-urlencode "chat_id=${CHAT_ID}" \
-                    --data-urlencode "text=SUCCESS: ${JOB_NAME} Build #${BUILD_NUMBER} completed successfully. ${BUILD_URL}"
-                '''
-            }
-        }
+    post {
+        always {
+            script {
 
-        failure {
-            withCredentials([
-                string(credentialsId: 'telegram-bot-token',
-                       variable: 'BOT_TOKEN'),
-                string(credentialsId: 'telegram-chat-id',
-                       variable: 'CHAT_ID')
-            ]) {
-                sh '''
-                    curl -sS -X POST \
-                    "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
-                    --data-urlencode "chat_id=${CHAT_ID}" \
-                    --data-urlencode "text=FAILURE: ${JOB_NAME} Build #${BUILD_NUMBER} failed. Check Jenkins console output. ${BUILD_URL}"
-                '''
+                def message = """
+Jenkins Notification
+
+Repository: react-sample-codes
+Build Number: ${env.BUILD_NUMBER}
+Commit Message: ${sh(script: 'git log -1 --pretty=%s', returnStdout: true).trim()}
+Committed By: ${sh(script: 'git log -1 --pretty=%an', returnStdout: true).trim()}
+Build Status: ${currentBuild.currentResult}
+"""
+
+                withCredentials([
+                    string(credentialsId: 'telegram-api-token1', variable: 'BOT_TOKEN'),
+                    string(credentialsId: 'telegram-id1', variable: 'CHAT_ID')
+                ]) {
+
+                    withEnv(["MESSAGE=${message}"]) {
+                        sh '''
+                            curl -sS -X POST \
+                            "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+                            --data-urlencode "chat_id=${CHAT_ID}" \
+                            --data-urlencode "text=${MESSAGE}"
+                        '''
+                    }
+                }
             }
         }
-     }
+    }
 }
